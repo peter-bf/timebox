@@ -1,13 +1,14 @@
-import { Layout } from "@/components/layout"
-import { Hero } from "@/components/hero"
-import { TimeboxGrid } from "@/components/timebox-grid"
+import NavBar from "@/components/NavBar"
+import HeroSection from "@/components/HeroSection"
+import TimeboxGrid from "@/components/TimeboxGrid"
 
 export default function Home() {
   return (
-    <Layout>
-      <Hero />
+    <main className="min-h-screen bg-background">
+      <NavBar />
+      <HeroSection />
       <TimeboxGrid />
-    </Layout>
+    </main>
   )
 }
 

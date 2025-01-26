@@ -1,0 +1,33 @@
+[
+  {
+    "Name": "Project Alpha Secrets",
+    "Timestamp": "2023-06-01T10:00:00Z",
+    "DateDue": "2026-06-15T18:00:00Z",
+    "Description": "Confidential information about Project Alpha",
+    "SecretKey": "alpha123",
+    "CONTENT": "Top secret project details and roadmap",
+    "IconUrl": "https://github.com/octocat.png",
+    "BlockchainHash": "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z"
+  },
+  {
+    "Name": "Time Capsule 2023",
+    "Timestamp": "2023-06-02T14:30:00Z",
+    "DateDue": "2027-01-01T00:00:00Z",
+    "Description": "Personal memories and predictions for the new year",
+    "SecretKey": "timecapsule456",
+    "CONTENT": "List of personal goals and reflections on the past year",
+    "IconUrl": "https://github.com/github.png",
+    "BlockchainHash": "0x7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f"
+  },
+  {
+    "Name": "Future Message",
+    "Timestamp": "2023-06-03T09:00:00Z",
+    "DateDue": "2028-07-03T09:00:00Z",
+    "Description": "A message to your future self",
+    "SecretKey": "future789",
+    "CONTENT": "Encouraging words and reminders of important life lessons",
+    "IconUrl": "https://github.com/octocat.png",
+    "BlockchainHash": "0x3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j7k8l"
+  }
+]
+
