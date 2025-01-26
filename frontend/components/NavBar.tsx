@@ -13,12 +13,6 @@ export default function NavBar() {
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="default">Create Timebox</Button>
-            <Button variant="ghost" className="text-primary hover:text-primary-foreground hover:bg-primary">
-              Sign In
-            </Button>
-            <Button variant="outline" className="text-primary hover:text-primary-foreground hover:bg-primary">
-              Sign Up
-            </Button>
           </div>
         </div>
       </div>

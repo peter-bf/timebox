@@ -5,9 +5,11 @@ import TimeboxGrid from "@/components/TimeboxGrid"
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <NavBar />
-      <HeroSection />
-      <TimeboxGrid />
+      <div className="px-2 sm:px-4">
+        <NavBar />
+        <HeroSection />
+        <TimeboxGrid />
+      </div>
     </main>
   )
 }

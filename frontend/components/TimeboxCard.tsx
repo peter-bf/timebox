@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,17 +14,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Image from "next/image"
 import { format } from "date-fns"
-import { Lock, Copy } from "lucide-react"
+import { Lock, Copy, Check, AlertCircle } from "lucide-react"
 
 interface Timebox {
+  id: string
   Name: string
   Timestamp: string
   DateDue: string
   Description: string
   SecretKey: string
-  CONTENT: string
+  Content: string
   IconUrl: string
   BlockchainHash: string
 }
@@ -30,9 +34,13 @@ interface Timebox {
 export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isHashDialogOpen, setIsHashDialogOpen] = useState(false)
+  const [isContentDialogOpen, setIsContentDialogOpen] = useState(false)
   const [secretKeyInput, setSecretKeyInput] = useState("")
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [countdown, setCountdown] = useState("")
+  const [isCopied, setIsCopied] = useState(false)
+  const [decryptedContent, setDecryptedContent] = useState("")
+  const [error, setError] = useState("")
 
   const isLocked = new Date(timebox.DateDue) > new Date()
 
@@ -60,18 +68,45 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
     setIsDialogOpen(true)
   }
 
-  const handleUnlock = () => {
-    if (secretKeyInput === timebox.SecretKey) {
-      setIsUnlocked(true)
+  const handleUnlock = async () => {
+    if (!secretKeyInput) {
+      setError("Secret key is required")
+      return
     }
-    setIsDialogOpen(false)
-    setSecretKeyInput("")
+
+    try {
+      const response = await fetch("http://localhost:3000/decryptbox", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: timebox.id,
+          secretKey: secretKeyInput,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to decrypt timebox")
+      }
+
+      const data = await response.text()
+      setDecryptedContent(data)
+      setIsUnlocked(true)
+      setIsDialogOpen(false)
+      setIsContentDialogOpen(true)
+      setSecretKeyInput("")
+      setError("")
+    } catch (err) {
+      setError("Failed to decrypt timebox. Please check your secret key and try again.")
+    }
   }
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(timebox.BlockchainHash)
-      alert("Hash copied to clipboard!")
+      await navigator.clipboard.writeText(text)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
     } catch (err) {
       console.error("Failed to copy text: ", err)
     }
@@ -92,28 +127,30 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
         <CardTitle className="mt-2">{timebox.Name}</CardTitle>
         <CardDescription>{format(new Date(timebox.Timestamp), "MMMM do yyyy")}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">{timebox.Description}</p>
-        <p className="text-sm font-semibold">Unlocks on: {format(new Date(timebox.DateDue), "MMMM do yyyy")}</p>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p
-                className="text-xs text-muted-foreground mt-2 truncate cursor-pointer"
-                onClick={() => setIsHashDialogOpen(true)}
-              >
-                Hash: {timebox.BlockchainHash}
-              </p>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Click to view full hash</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      <CardContent className="flex flex-col justify-between" style={{ minHeight: "180px" }}>
+        <div>
+          <p className="text-sm text-muted-foreground mb-2">{timebox.Description}</p>
+          <p className="text-sm font-semibold">Unlocks on: {format(new Date(timebox.DateDue), "MMMM do yyyy")}</p>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p
+                  className="text-xs text-muted-foreground mt-2 truncate cursor-pointer"
+                  onClick={() => setIsHashDialogOpen(true)}
+                >
+                  Hash: {timebox.BlockchainHash}
+                </p>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Click to view full hash</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="mt-4">
           <Button
-            variant="outline"
-            className={`w-full h-10 ${isLocked ? "bg-gray-200 text-gray-600" : ""}`}
+            variant={isLocked ? "outline" : "default"}
+            className={`w-full h-10 ${!isLocked && "bg-green-500 hover:bg-green-600"}`}
             onClick={handleOpen}
             disabled={isLocked}
           >
@@ -142,6 +179,13 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
               />
             </div>
           </div>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <DialogFooter>
             <Button onClick={handleUnlock}>Unlock</Button>
           </DialogFooter>
@@ -157,10 +201,46 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
             <p className="text-sm break-all">{timebox.BlockchainHash}</p>
           </div>
           <DialogFooter>
-            <Button onClick={copyToClipboard}>
-              <Copy className="w-4 h-4 mr-2" />
-              Copy to Clipboard
+            <Button onClick={() => copyToClipboard(timebox.BlockchainHash)}>
+              {isCopied ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy to Clipboard
+                </>
+              )}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isContentDialogOpen} onOpenChange={setIsContentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Timebox Content</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <p className="text-sm break-all">{decryptedContent}</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => copyToClipboard(decryptedContent)} className="mr-2">
+              {isCopied ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy to Clipboard
+                </>
+              )}
+            </Button>
+            <Button onClick={() => setIsContentDialogOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
