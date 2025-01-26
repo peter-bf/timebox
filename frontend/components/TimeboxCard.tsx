@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -75,14 +75,14 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/decryptbox", {
+      const response = await fetch("http://localhost:8000/decryptbox", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           id: timebox.id,
-          secretKey: secretKeyInput,
+          secret_key: secretKeyInput,
         }),
       })
 
@@ -90,8 +90,8 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
         throw new Error("Failed to decrypt timebox")
       }
 
-      const data = await response.text()
-      setDecryptedContent(data)
+      const data = await response.json()
+      setDecryptedContent(data.decrypted_content || "No content available")
       setIsUnlocked(true)
       setIsDialogOpen(false)
       setIsContentDialogOpen(true)
@@ -219,29 +219,37 @@ export default function TimeboxCard({ timebox }: { timebox: Timebox }) {
       </Dialog>
 
       <Dialog open={isContentDialogOpen} onOpenChange={setIsContentDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Timebox Content</DialogTitle>
+            <DialogTitle>{timebox.Name} Content</DialogTitle>
+            <DialogDescription>Unlocked on {format(new Date(), "MMMM do yyyy, h:mm a")}</DialogDescription>
           </DialogHeader>
-          <div className="mt-2">
-            <p className="text-sm break-all">{decryptedContent}</p>
+          <div className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Message</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm whitespace-pre-wrap">{decryptedContent}</p>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button onClick={() => copyToClipboard(decryptedContent)}>
+                  {isCopied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+                <Button onClick={() => setIsContentDialogOpen(false)}>Close</Button>
+              </CardFooter>
+            </Card>
           </div>
-          <DialogFooter>
-            <Button onClick={() => copyToClipboard(decryptedContent)} className="mr-2">
-              {isCopied ? (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy to Clipboard
-                </>
-              )}
-            </Button>
-            <Button onClick={() => setIsContentDialogOpen(false)}>Close</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>

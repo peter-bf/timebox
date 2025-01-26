@@ -39,6 +39,7 @@ export default function TimeboxGrid() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortType, setSortType] = useState("unlock")
   const [error, setError] = useState("")
+  const [secretKey, setSecretKey] = useState("")
 
   useEffect(() => {
     const filtered = timeboxData.filter((timebox) => timebox.Name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -69,7 +70,7 @@ export default function TimeboxGrid() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/createbox", {
+      const response = await fetch("http://localhost:8000/createbox", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,6 +84,7 @@ export default function TimeboxGrid() {
 
       const data = await response.json()
       console.log("New Timebox created:", data)
+      setSecretKey(data.secret_key) // Store the secret key
       setIsCreateDialogOpen(false)
       setNewTimebox({ Name: "", Description: "", DateDue: "", Content: "", IconUrl: "" })
       setError("")
@@ -217,6 +219,29 @@ export default function TimeboxGrid() {
           )}
           <DialogFooter>
             <Button onClick={handleCreateTimebox}>Create Timebox</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!secretKey} onOpenChange={() => setSecretKey("")}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Timebox Created Successfully</DialogTitle>
+            <DialogDescription>
+              Here's your secret key. Please copy and store it safely. You won't be able to see it again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <Input value={secretKey} readOnly />
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(secretKey)
+                setSecretKey("")
+              }}
+            >
+              Copy and Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
