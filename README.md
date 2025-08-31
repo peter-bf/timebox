@@ -1,4 +1,5 @@
 # Timebox - uOttaHack 2025 "Best Use of Midnight" Challenge  
+![Homepage Screenshot](Homepage_SC.png)
 
 Unfortunately, the Midnight testnet was down so we couldn't implement Midnight. The following README will be written as though we were able to implement it and it will describe how we would have used it.
 
